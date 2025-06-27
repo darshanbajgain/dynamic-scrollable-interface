@@ -10,7 +10,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [currentPhase, setCurrentPhase] = useState<"vertical1" | "horizontal" | "vertical2" | "complete">("vertical1")
 
-  const horizontalSectionRef = useRef<HTMLDivElement>(null)
+  const horizontalTrackRef = useRef<HTMLDivElement>(null)
+  const movableContentRef = useRef<HTMLDivElement>(null)
 
   // Load the next item with delay
   const loadNextItem = useCallback(() => {
@@ -58,7 +59,23 @@ export default function Home() {
       const windowHeight = window.innerHeight
       const documentHeight = document.documentElement.scrollHeight
 
-      if (scrollTop + windowHeight >= documentHeight - 100) {
+      // For vertical2 phase, we need to account for the horizontal section height
+      const scrollThreshold = 100
+      if (currentPhase === "vertical2") {
+        // After horizontal section, we need to check if user scrolled past it
+        const horizontalTrack = horizontalTrackRef.current
+        if (horizontalTrack) {
+          const trackRect = horizontalTrack.getBoundingClientRect()
+          const trackBottom = trackRect.bottom + window.pageYOffset
+
+          // Only trigger loading if we've scrolled past the horizontal section
+          if (scrollTop < trackBottom - windowHeight) {
+            return // Still in or before horizontal section
+          }
+        }
+      }
+
+      if (scrollTop + windowHeight >= documentHeight - scrollThreshold) {
         loadNextItem()
       }
     }
@@ -76,46 +93,46 @@ export default function Home() {
     }
   }, [currentPhase, isLoading, items.length, loadNextItem])
 
-  // Horizontal scroll handler for phase 2
+  // NEW: Horizontal pinned scroll handler for phase 2
   useEffect(() => {
     if (currentPhase !== "horizontal") return
 
-    const horizontalSection = horizontalSectionRef.current
-    if (!horizontalSection) return
-
     const handleHorizontalScroll = () => {
-      if (isLoading || items.length >= 30) return
+      const track = horizontalTrackRef.current
+      const movableContent = movableContentRef.current
 
-      const { scrollLeft, scrollWidth, clientWidth } = horizontalSection
+      if (!track || !movableContent) return
 
-      // Trigger when scrolled 20% of the way horizontally
-      if (scrollLeft + clientWidth >= scrollWidth * 0.2) {
+      const trackRect = track.getBoundingClientRect()
+      const trackTop = trackRect.top + window.pageYOffset
+      const trackHeight = track.offsetHeight
+      const viewportHeight = window.innerHeight
+
+      // Calculate scroll progress within the track (0 to 1)
+      const scrollProgress = Math.max(0, Math.min(1, (window.pageYOffset - trackTop) / (trackHeight - viewportHeight)))
+
+      // Calculate how many items should be visible based on scroll progress
+      const totalHorizontalItems = 10 // Items 21-30
+      const currentItemIndex = Math.floor(scrollProgress * totalHorizontalItems)
+
+      // Calculate transform to show the current item in view
+      const itemWidth = 320 + 32 // 320px width + 32px gap (w-80 + gap-8)
+      const containerWidth = movableContent.parentElement?.offsetWidth || 800
+
+      // Position so the current item is visible, with previous items sliding left
+      const translateX = Math.max(0, currentItemIndex * itemWidth - (containerWidth - itemWidth) / 2)
+
+      movableContent.style.transform = `translateX(-${translateX}px)`
+
+      // Load items based on progress - ensure we have enough items for current position
+      const targetItemCount = 21 + currentItemIndex
+      if (targetItemCount > items.length && targetItemCount <= 30 && !isLoading) {
         loadNextItem()
       }
     }
 
-    // Handle wheel events to convert vertical scroll to horizontal
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault()
-      const delta = e.deltaY || e.deltaX
-      horizontalSection.scrollLeft += delta
-
-      // Check if we should load next item
-      setTimeout(handleHorizontalScroll, 50)
-    }
-
-    // Handle direct horizontal scroll
-    const handleScroll = () => {
-      handleHorizontalScroll()
-    }
-
-    horizontalSection.addEventListener("scroll", handleScroll)
-    horizontalSection.addEventListener("wheel", handleWheel, { passive: false })
-
-    return () => {
-      horizontalSection.removeEventListener("scroll", handleScroll)
-      horizontalSection.removeEventListener("wheel", handleWheel)
-    }
+    window.addEventListener("scroll", handleHorizontalScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleHorizontalScroll)
   }, [currentPhase, isLoading, items.length, loadNextItem])
 
   // Auto-load item 21 when entering horizontal phase
@@ -126,6 +143,16 @@ export default function Home() {
       }, 100)
     }
   }, [items.length, loadNextItem])
+
+  // Auto-trigger transition to vertical2 phase when horizontal is complete
+  useEffect(() => {
+    if (items.length === 30 && currentPhase === "horizontal") {
+      // Small delay to ensure smooth transition
+      setTimeout(() => {
+        loadNextItem() // This will load item 31 and trigger vertical2 phase
+      }, 500)
+    }
+  }, [items.length, currentPhase, loadNextItem])
 
   // Load first item on mount
   useEffect(() => {
@@ -145,7 +172,9 @@ export default function Home() {
         <header className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-100">Dynamic Scroll Interface</h1>
           <p className="text-lg text-gray-400 mb-4">
-            {currentPhase === "horizontal" ? "🔄 Scroll horizontally to load items →" : "⬇️ Scroll down to load items"}
+            {currentPhase === "horizontal"
+              ? "🔄 Keep scrolling down to move horizontally →"
+              : "⬇️ Scroll down to load items"}
           </p>
           <div className="text-sm text-gray-500">
             Phase: <span className="capitalize font-semibold text-teal-400">{currentPhase}</span> | Items loaded:{" "}
@@ -172,69 +201,66 @@ export default function Home() {
             </section>
           )}
 
-          {/* Section 2: Horizontal Items 21-30 - TRUE HORIZONTAL SCROLLING */}
+          {/* Section 2: NEW PINNED HORIZONTAL SECTION (Items 21-30) */}
           {horizontalItems.length > 0 && (
-            <section className="min-h-screen flex flex-col justify-center">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-teal-300 mb-4">🔄 Horizontal Section (21-30)</h2>
-                <p className="text-lg text-yellow-400 font-semibold">Scroll horizontally to load items →</p>
-                <p className="text-sm text-gray-400 mt-2">Use mouse wheel, trackpad, or drag the scrollbar</p>
-              </div>
+            <div ref={horizontalTrackRef} className="relative" style={{ height: "4000px" }}>
+              <div className="sticky top-0 h-screen flex flex-col justify-center bg-gray-800">
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-teal-300 mb-4">🔄 Horizontal Section (21-30)</h2>
+                  <p className="text-lg text-yellow-400 font-semibold">Keep scrolling down to move horizontally →</p>
+                  <p className="text-sm text-gray-400 mt-2">Items slide in as you scroll down the page</p>
+                </div>
 
-              {/* Horizontal scrolling container */}
-              <div
-                ref={horizontalSectionRef}
-                className="w-full h-96 overflow-x-auto overflow-y-hidden bg-gray-800 rounded-xl p-6 border-2 border-teal-600"
-                style={{ scrollbarWidth: "thin" }}
-              >
-                <div
-                  className="flex items-center gap-8 h-full"
-                  style={{
-                    width: `${Math.max(horizontalItems.length * 350 + 800, window.innerWidth * 2)}px`,
-                  }}
-                >
-                  {horizontalItems.map((num) => (
-                    <div
-                      key={num}
-                      className="flex-shrink-0 animate-fadeIn rounded-xl border-2 border-teal-400 bg-gradient-to-br from-teal-900 to-teal-800 p-8 shadow-lg w-80 h-72 flex flex-col items-center justify-center transform transition-all duration-300 hover:scale-105"
-                    >
-                      <p className="text-center text-5xl font-bold text-white mb-4">{num}</p>
-                      <p className="text-center text-lg text-teal-200">Horizontal Item</p>
-                      <p className="text-center text-sm text-teal-300 mt-2">Keep scrolling right →</p>
-                    </div>
-                  ))}
-
-                  {/* Loading indicator for horizontal section */}
-                  {isLoading && currentPhase === "horizontal" && (
-                    <div className="flex-shrink-0 w-80 h-72 flex flex-col items-center justify-center rounded-xl border-2 border-teal-500 bg-teal-900/50">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-teal-400 mb-4"></div>
-                      <p className="text-lg text-teal-300">Loading...</p>
-                      <p className="text-sm text-teal-400 mt-2">{DELAY_MS}ms delay</p>
-                    </div>
-                  )}
-
-                  {/* Extra space to ensure scrolling */}
-                  <div className="flex-shrink-0 w-96 h-full flex items-center justify-center">
-                    {horizontalItems.length >= 10 ? (
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-purple-300 mb-2">🎉 Section Complete!</p>
-                        <p className="text-purple-400">Scroll down to continue</p>
+                {/* Pinned horizontal viewport */}
+                <div className="w-full h-96 overflow-hidden bg-gray-900 rounded-xl border-2 border-teal-600 flex items-center">
+                  <div
+                    ref={movableContentRef}
+                    className="flex items-center gap-8 h-full pl-8 transition-transform duration-300 ease-out"
+                    style={{ width: "max-content" }}
+                  >
+                    {horizontalItems.map((num) => (
+                      <div
+                        key={num}
+                        className="flex-shrink-0 animate-fadeIn rounded-xl border-2 border-teal-400 bg-gradient-to-br from-teal-900 to-teal-800 p-8 shadow-lg w-80 h-72 flex flex-col items-center justify-center transform transition-all duration-300 hover:scale-105"
+                      >
+                        <p className="text-center text-5xl font-bold text-white mb-4">{num}</p>
+                        <p className="text-center text-lg text-teal-200">Horizontal Item</p>
+                        <p className="text-center text-sm text-teal-300 mt-2">Scroll down to continue →</p>
                       </div>
-                    ) : (
-                      <div className="text-center text-gray-500">
-                        <p>Keep scrolling right →</p>
+                    ))}
+
+                    {/* Loading indicator for horizontal section */}
+                    {isLoading && currentPhase === "horizontal" && (
+                      <div className="flex-shrink-0 w-80 h-72 flex flex-col items-center justify-center rounded-xl border-2 border-teal-500 bg-teal-900/50">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-teal-400 mb-4"></div>
+                        <p className="text-lg text-teal-300">Loading...</p>
+                        <p className="text-sm text-teal-400 mt-2">{DELAY_MS}ms delay</p>
                       </div>
                     )}
+
+                    {/* Extra space for smooth animation */}
+                    <div className="flex-shrink-0 w-96 h-full flex items-center justify-center">
+                      {horizontalItems.length >= 10 ? (
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-purple-300 mb-2">🎉 Section Complete!</p>
+                          <p className="text-purple-400">Keep scrolling down to continue</p>
+                        </div>
+                      ) : (
+                        <div className="text-center text-gray-500">
+                          <p>Keep scrolling down →</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="text-center mt-6">
-                <p className="text-base text-gray-300">
-                  🖱️ Mouse wheel scrolls horizontally | 📱 Swipe left/right on mobile
-                </p>
+                <div className="text-center mt-6">
+                  <p className="text-base text-gray-300">
+                    🖱️ Use your main scrollbar to move horizontally | No nested scrolling needed
+                  </p>
+                </div>
               </div>
-            </section>
+            </div>
           )}
 
           {/* Section 3: Vertical Items 31-50 */}
