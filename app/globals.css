@@ -31,36 +31,3 @@ body {
   }
 }
 
-@layer utilities {
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .animate-fadeIn {
-    animation: fadeIn 0.5s ease-out;
-  }
-
-  /* Enhanced horizontal scrollbar */
-  .overflow-x-auto::-webkit-scrollbar {
-    height: 14px;
-  }
-
-  .overflow-x-auto::-webkit-scrollbar-track {
-    @apply bg-gray-700 rounded;
-  }
-
-  .overflow-x-auto::-webkit-scrollbar-thumb {
-    @apply bg-teal-500 rounded;
-  }
-
-  .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-    @apply bg-teal-400;
-  }
-}
