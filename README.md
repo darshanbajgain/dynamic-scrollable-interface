@@ -4,8 +4,7 @@ This project is a high-fidelity solution to a frontend developer technical task.
 
 The application is built using a modern, cutting-edge tech stack to demonstrate proficiency in contemporary frontend development practices.
 
-**Live Demo:** https://dynamic-scrollable-interface.vercel.app/
-
+**Live Demo:** <https://dynamic-scrollable-interface.vercel.app/>
 
 ## The User Experience Journey
 
@@ -69,6 +68,22 @@ This architecture solves the two most critical UX problems:
 
 4. **Open your browser:**
     Navigate to [http://localhost:3000](http://localhost:3000) to see the application in action.
+
+## Testing
+
+This project includes a suite of tests using **Jest** and **React Testing Library** to ensure core functionality is working correctly.
+
+The tests cover:
+* Initial component rendering.
+* Automatic loading of the first element.
+* Dynamic loading of new elements upon vertical scroll simulation.
+
+### How to Run Tests
+
+To run the test suite, use the following command:
+
+```bash
+npm test
 
 ## Assumptions and Limitations
 

@@ -189,6 +189,7 @@ export default function Home() {
               <div className="flex flex-col items-center gap-8">
                 {verticalItems1.map((num) => (
                   <div
+                    data-testid={`item-card-${num}`}
                     key={num}
                     className="w-full max-w-md animate-fadeIn rounded-xl border border-gray-700 bg-gradient-to-r from-gray-800 to-gray-700 p-8 shadow-lg transform transition-all duration-300 hover:scale-105"
                   >
@@ -219,6 +220,7 @@ export default function Home() {
                   >
                     {horizontalItems.map((num) => (
                       <div
+                        data-testid={`item-card-${num}`}
                         key={num}
                         className="flex-shrink-0 animate-fadeIn rounded-xl border-2 border-teal-400 bg-gradient-to-br from-teal-900 to-teal-800 p-8 shadow-lg w-80 h-72 flex flex-col items-center justify-center transform transition-all duration-300 hover:scale-105"
                       >
@@ -269,6 +271,7 @@ export default function Home() {
               <div className="flex flex-col items-center gap-8">
                 {verticalItems2.map((num) => (
                   <div
+                    data-testid={`item-card-${num}`}
                     key={num}
                     className="w-full max-w-md animate-fadeIn rounded-xl border border-purple-600 bg-gradient-to-r from-purple-900 to-purple-800 p-8 shadow-lg transform transition-all duration-300 hover:scale-105"
                   >
