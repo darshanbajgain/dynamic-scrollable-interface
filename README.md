@@ -4,7 +4,7 @@ This project is a high-fidelity solution to a frontend developer technical task.
 
 The application is built using a modern, cutting-edge tech stack to demonstrate proficiency in contemporary frontend development practices.
 
-**Live Demo:** []
+**Live Demo:** https://dynamic-scrollable-interface.vercel.app/
 
 
 ## The User Experience Journey
