@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dynamic Scroll Interface Challenge
 
-## Getting Started
+This project is a high-fidelity solution to a frontend developer technical task. It implements a sophisticated, "cinematic" scrolling interface that seamlessly transitions between vertical and horizontal content sections based on a single, continuous user scroll action.
 
-First, run the development server:
+The application is built using a modern, cutting-edge tech stack to demonstrate proficiency in contemporary frontend development practices.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**Live Demo:** []
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## The User Experience Journey
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The core of this project is a carefully choreographed user journey designed to be seamless and engaging:
 
-## Learn More
+1. **Phase 1 (Vertical):** The experience begins with a standard vertical scroll, dynamically loading items 1 through 20.
+2. **Phase 2 (Pinned Horizontal):** Upon reaching item 20, the interface transitions. The main vertical scroll action is "hijacked" to control a horizontal "film strip" of items 21-30. The section is pinned to the viewport, and continued vertical scrolling moves the content horizontally, creating a cinematic effect.
+3. **Phase 3 (Vertical):** Once the horizontal journey is complete, the layout seamlessly returns to standard vertical scrolling for the final items, 31 through 50.
 
-To learn more about Next.js, take a look at the following resources:
+This entire experience is controlled by a single browser scrollbar, eliminating jarring context switches or the need for nested scrollbars.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tech Stack & Architectural Choices
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This project was built with a specific set of modern technologies to showcase robust and forward-thinking development patterns.
 
-## Deploy on Vercel
+* **Framework:** **Next.js 15 (App Router)**
+  * **Why?** Chosen for its best-in-class developer experience, performance optimizations (React Server Components), and seamless setup for a production-ready React + TypeScript environment.
+* **Language:** **TypeScript**
+  * **Why?** To ensure type safety, improve code quality, and make the codebase more robust and maintainable, which is critical for complex state logic.
+* **Styling:** **Tailwind CSS v4**
+  * **Why?** Leveraged for its utility-first approach to building responsive, custom designs rapidly. The v4 engine simplifies the setup by integrating directly into CSS without extra config files.
+* **State Management:** **React Hooks (`useState`, `useEffect`, `useCallback`, `useRef`)**
+  * **Why?** For a self-contained, single-component challenge like this, using React's built-in hooks is the most efficient and correct approach. A global state manager like Redux or Zustand would be unnecessary over-engineering. The logic is complex but remains local to the component.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Key Technical Implementation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The most significant challenge was creating the seamless transition to the horizontal section without nested scrollbars. This was solved using the **Pinned Scroll (or "Scroll Jacking")** technique.
+
+### How the Pinned Scroll Works
+
+1. **The Track:** A tall, empty parent `div` (`<div style={{ height: '4000px' }}>`) is created. Its height dictates the number of vertical scroll pixels required to complete the horizontal animation. This is what "locks" the user into the horizontal phase.
+2. **The Sticky Viewport:** A child `div` with `position: sticky` and `top: 0` is placed within the track. This element pins itself to the top of the browser window as soon as the user scrolls to it.
+3. **The Movable Content:** Inside the sticky viewport, a wide `div` containing the horizontal items is moved sideways using `transform: translateX()`.
+4. **The JavaScript Bridge:** A master `useEffect` scroll handler calculates the user's vertical scroll progress within the "track" and translates that percentage into a negative `translateX` value for the movable content. This creates the illusion that scrolling down is moving the content sideways.
+
+This architecture solves the two most critical UX problems:
+
+* It prevents the user from accidentally scrolling past the horizontal section.
+* It provides immediate, one-to-one feedback, as the horizontal content moves in perfect sync with the user's scroll input.
+
+## How to Run the Project Locally
+
+1. **Clone the repository:**
+
+    ```bash
+    git clone https://github.com/darshanbajgain/dynamic-scrollable-interface.git
+    cd dynamic-scrollable-interface
+    ```
+
+2. **Install dependencies:**
+
+    ```bash
+    npm install
+    ```
+
+3. **Run the development server:**
+
+    ```bash
+    npm run dev
+    ```
+
+4. **Open your browser:**
+    Navigate to [http://localhost:3000](http://localhost:3000) to see the application in action.
+
+## Assumptions and Limitations
+
+* **Scroll Input:** The experience is primarily designed and optimized for a standard mouse wheel or trackpad vertical scroll.
+* **Accessibility:** The "scroll jacking" pattern is a deliberate design choice for a cinematic effect, which comes with known accessibility trade-offs. Standard keyboard navigation (like using the down arrow) will jump through the sections rather than smoothly animating them. A production version would require additional work to enhance accessibility for all user inputs.
