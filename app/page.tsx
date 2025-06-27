@@ -169,20 +169,19 @@ export default function Home() {
   return (
     <div className="bg-gray-900 text-white min-h-screen font-sans">
       <main className="container mx-auto max-w-6xl px-4 py-8">
-        <header className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-100">Dynamic Scroll Interface</h1>
-          <p className="text-lg text-gray-400 mb-4">
-            {currentPhase === "horizontal"
-              ? "🔄 Keep scrolling down to move horizontally →"
-              : "⬇️ Scroll down to load items"}
-          </p>
-          <div className="text-sm text-gray-500">
-            Phase: <span className="capitalize font-semibold text-teal-400">{currentPhase}</span> | Items loaded:{" "}
-            <span className="font-semibold text-teal-400">{items.length}</span>/50
+        <header className="sticky top-0 z-50 bg-gray-900/80 backdrop-blur-lg border-b border-gray-700">
+          <div className="container mx-auto px-4 py-3">
+            <div className="text-center">
+              <h1 className="text-xl font-bold tracking-tight text-gray-100">Dynamic Scroll Interface</h1>
+              <div className="text-sm text-gray-500 mt-1">
+                Phase: <span className="capitalize font-semibold text-teal-400">{currentPhase.replace('2', ' 2')}</span> | Items loaded:{" "}
+                <span className="font-semibold text-teal-400">{items.length}</span>/50
+              </div>
+            </div>
           </div>
         </header>
 
-        <div className="space-y-16">
+        <div className="space-y-16 py-8 m-8">
           {/* Section 1: Vertical Items 1-20 */}
           {verticalItems1.length > 0 && (
             <section className="space-y-8">
