@@ -74,6 +74,7 @@ This architecture solves the two most critical UX problems:
 This project includes a suite of tests using **Jest** and **React Testing Library** to ensure core functionality is working correctly.
 
 The tests cover:
+
 * Initial component rendering.
 * Automatic loading of the first element.
 * Dynamic loading of new elements upon vertical scroll simulation.
@@ -84,6 +85,7 @@ To run the test suite, use the following command:
 
 ```bash
 npm test
+```
 
 ## Assumptions and Limitations
 
